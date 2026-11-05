@@ -150,6 +150,12 @@ pytest tests -v
 
 ---
 
-## 📖 Detailed Documentation
+## 📖 Detailed Documentation & Logs
 
-For the full Project Initiation Document (PID), Business Case, Product Requirements Document (PRD), and Risk Register, see [docs/PROJECT_SPECIFICATION.md](docs/PROJECT_SPECIFICATION.md).
+* 📜 **[PROJECT_LOG.md](PROJECT_LOG.md):** Complete component-by-component rationale log explaining why each file was created, what it contains, and how it interacts with the system.
+* 📋 **[docs/PROJECT_SPECIFICATION.md](docs/PROJECT_SPECIFICATION.md):** The foundational 2,000+ line institutional project specification pack containing:
+  1. **Section 1:** Business Case & Problem Statement (Executive summary, value, success metrics)
+  2. **Section 2:** Project Charter / Project Initiation Document (PID) (Vision, deliverables, governance)
+  3. **Section 3:** Project Plan & Schedule (WBS, milestones, timeline)
+  4. **Section 4:** Scope & Requirements / Product Requirements Document (PRD) (User stories, functional requirements FR-001 through FR-043, NFRs, metadata model, and evaluation strategy)
+
