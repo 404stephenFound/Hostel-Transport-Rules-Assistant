@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostel & Transport Rules Assistant</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased h-screen flex flex-col">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-indigo-900 text-white shadow-md z-10 px-6 py-3 flex items-center justify-between border-b border-indigo-950">
+        <div class="flex items-center space-x-3">
+            <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shadow-inner text-white font-bold text-lg">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight">Hostel & Transport Rules Assistant</h1>
+                <p class="text-xs text-indigo-200">Grounded Institutional Policy & Timetable Assistant</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-2">
+            <button onclick="switchTab('student')" id="tab-student-btn" class="px-4 py-2 text-sm font-semibold rounded-lg bg-indigo-700 text-white shadow">
+                <i class="fa-solid fa-comments mr-1.5"></i> Student Assistant
+            </button>
+            <button onclick="switchTab('admin')" id="tab-admin-btn" class="px-4 py-2 text-sm font-semibold rounded-lg text-indigo-200 hover:bg-indigo-800">
+                <i class="fa-solid fa-file-shield mr-1.5"></i> Policy Admin Hub
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 overflow-hidden flex">
+
+        <!-- TAB 1: Student Chat View -->
+        <section id="student-view" class="flex-1 flex flex-col h-full bg-slate-100">
+            <!-- Messages Container -->
+            <div id="messages-container" class="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar max-w-4xl w-full mx-auto">
+                <!-- Welcome Bot Greeting -->
+                <div class="flex items-start space-x-3">
+                    <div class="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm shadow">
+                        <i class="fa-solid fa-robot"></i>
+                    </div>
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm max-w-2xl text-slate-800 text-sm">
+                        <p class="font-semibold text-slate-900 mb-1 text-base">Hello! How can I help you today?</p>
+                        <p class="text-slate-600 leading-relaxed mb-3">
+                            I answer questions about hostel entry/exit timings, night roll calls, outstation leave procedures, bus routes, pickup stops, and transit schedules using approved institutional documents.
+                        </p>
+                        <div class="text-xs text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex items-center">
+                            <i class="fa-solid fa-shield-halved text-indigo-600 mr-2 text-sm"></i>
+                            Every answer is directly cited with source document titles, publication dates, and freshness notices.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example Prompt Chips -->
+                <div id="quick-prompts" class="flex flex-wrap gap-2 pt-2 justify-center">
+                    <button onclick="askPrompt('What is the hostel entry gate closing time on weekdays?')" class="text-xs bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium py-1.5 px-3 rounded-full transition shadow-sm">
+                        🕒 Weekday Hostel Curfew
+                    </button>
+                    <button onclick="askPrompt('Did the weekend hostel curfew change? What is the new Friday/Saturday timing?')" class="text-xs bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium py-1.5 px-3 rounded-full transition shadow-sm">
+                        📋 Weekend Curfew Revision
+                    </button>
+                    <button onclick="askPrompt('Which bus goes to Lakeview Colony and what are the morning pickup timings for Route 4?')" class="text-xs bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium py-1.5 px-3 rounded-full transition shadow-sm">
+                        🚌 Route 4 Stops & Timings
+                    </button>
+                    <button onclick="askPrompt('How do I apply for overnight weekend leave?')" class="text-xs bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium py-1.5 px-3 rounded-full transition shadow-sm">
+                        📝 Overnight Leave Procedure
+                    </button>
+                    <button onclick="askPrompt('What are the gymnasium and laundry machine operational hours?')" class="text-xs bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium py-1.5 px-3 rounded-full transition shadow-sm">
+                        🏋️ Gym & Laundry Hours
+                    </button>
+                </div>
+            </div>
+
+            <!-- Input Bar -->
+            <div class="bg-white border-t border-slate-200 p-4">
+                <form id="chat-form" onsubmit="handleSend(event)" class="max-w-4xl mx-auto flex items-center space-x-3">
+                    <div class="relative flex-1">
+                        <input id="user-input" type="text" placeholder="Ask about hostel rules, timings, or college bus routes..." required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-900 shadow-sm" />
+                    </div>
+                    <button type="submit" id="send-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-5 py-3 rounded-xl transition shadow flex items-center space-x-1.5">
+                        <span>Ask</span>
+                        <i class="fa-solid fa-arrow-up text-xs"></i>
+                    </button>
+                </form>
+                <div class="max-w-4xl mx-auto mt-2 flex items-center justify-between text-[11px] text-slate-400">
+                    <span>Informational assistant grounded in official notices. Does not grant approvals.</span>
+                    <label class="flex items-center space-x-1.5 cursor-pointer text-slate-500">
+                        <input type="checkbox" id="chk-historical" class="rounded text-indigo-600 focus:ring-0 text-xs">
+                        <span>Include superseded historical documents</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: Admin & Document Hub View -->
+        <section id="admin-view" class="flex-1 flex flex-col h-full bg-slate-50 hidden overflow-y-auto p-8 custom-scrollbar">
+            <div class="max-w-6xl mx-auto w-full space-y-8">
+                <!-- Header stats & actions -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-2xl font-bold text-slate-900">Document & Policy Repository</h2>
+                        <p class="text-sm text-slate-500">Inspect, publish, supersede, or review institutional knowledge bases</p>
+                    </div>
+                    <button onclick="openUploadModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm px-4 py-2.5 rounded-xl shadow flex items-center space-x-2">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Upload New Notice</span>
+                    </button>
+                </div>
+
+                <!-- Documents Inventory Table -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                        <h3 class="font-bold text-slate-800 text-sm">Indexed Institutional Documents</h3>
+                        <span id="doc-count-badge" class="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-700">Loading...</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-50 text-slate-700 text-xs uppercase font-semibold border-b border-slate-200">
+                                <tr>
+                                    <th class="px-6 py-3.5">Title & Version</th>
+                                    <th class="px-6 py-3.5">Category</th>
+                                    <th class="px-6 py-3.5">Department</th>
+                                    <th class="px-6 py-3.5">Notice Date</th>
+                                    <th class="px-6 py-3.5">Effective Dates</th>
+                                    <th class="px-6 py-3.5">Status</th>
+                                    <th class="px-6 py-3.5 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="docs-table-body" class="divide-y divide-slate-100">
+                                <tr><td colspan="7" class="text-center py-6 text-slate-400">Loading documents...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Audit Log Section -->
+                <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+                    <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                        <h3 class="font-bold text-slate-800 text-sm">System Audit History</h3>
+                        <span class="text-xs text-slate-400">Logged actions & query telemetry</span>
+                    </div>
+                    <div id="audit-log-list" class="divide-y divide-slate-100 max-h-64 overflow-y-auto custom-scrollbar p-2">
+                        <div class="text-center py-6 text-slate-400 text-xs">Loading audit trail...</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal for Uploading New Document -->
+    <div id="upload-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-xl w-full p-6 space-y-4">
+            <div class="flex items-center justify-between border-b pb-3 border-slate-100">
+                <h3 class="font-bold text-lg text-slate-900">Upload & Publish New Institutional Notice</h3>
+                <button onclick="closeUploadModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form onsubmit="handleUpload(event)" class="space-y-3 text-sm">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Document Title *</label>
+                    <input type="text" id="m-title" required class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-1 focus:ring-indigo-500" placeholder="e.g. Circular No. 15/2026: Mess Timing Revision" />
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Category *</label>
+                        <select id="m-category" required class="w-full border rounded-lg px-3 py-2 text-sm bg-white">
+                            <option value="Hostel Circular">Hostel Circular</option>
+                            <option value="Hostel Manual">Hostel Manual</option>
+                            <option value="Transport Notice">Transport Notice</option>
+                            <option value="Transport Timetable">Transport Timetable</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Issuing Department *</label>
+                        <select id="m-dept" required class="w-full border rounded-lg px-3 py-2 text-sm bg-white">
+                            <option value="Hostel Administration">Hostel Administration</option>
+                            <option value="Transport Office">Transport Office</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Publication Date</label>
+                        <input type="date" id="m-pub-date" class="w-full border rounded-lg px-3 py-1.5 text-xs" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Effective From</label>
+                        <input type="date" id="m-eff-from" class="w-full border rounded-lg px-3 py-1.5 text-xs" />
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Effective Until</label>
+                        <input type="date" id="m-eff-until" class="w-full border rounded-lg px-3 py-1.5 text-xs" />
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Document Content / Text *</label>
+                    <textarea id="m-content" rows="4" required class="w-full border rounded-lg p-2.5 text-xs font-mono focus:ring-1 focus:ring-indigo-500" placeholder="Type or paste the extracted notice text..."></textarea>
+                </div>
+                <div class="pt-2 flex justify-end space-x-2">
+                    <button type="button" onclick="closeUploadModal()" class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-50 text-xs font-medium">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow">Publish and Index</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Client-side Application Logic -->
+    <script>
+        let currentSessionId = null;
+
+        function switchTab(tab) {
+            const studentView = document.getElementById('student-view');
+            const adminView = document.getElementById('admin-view');
+            const studentBtn = document.getElementById('tab-student-btn');
+            const adminBtn = document.getElementById('tab-admin-btn');
+
+            if (tab === 'student') {
+                studentView.classList.remove('hidden');
+                adminView.classList.add('hidden');
+                studentBtn.className = "px-4 py-2 text-sm font-semibold rounded-lg bg-indigo-700 text-white shadow";
+                adminBtn.className = "px-4 py-2 text-sm font-semibold rounded-lg text-indigo-200 hover:bg-indigo-800";
+            } else {
+                studentView.classList.add('hidden');
+                adminView.classList.remove('hidden');
+                adminBtn.className = "px-4 py-2 text-sm font-semibold rounded-lg bg-indigo-700 text-white shadow";
+                studentBtn.className = "px-4 py-2 text-sm font-semibold rounded-lg text-indigo-200 hover:bg-indigo-800";
+                loadDocuments();
+                loadAuditTrail();
+            }
+        }
+
+        function askPrompt(text) {
+            document.getElementById('user-input').value = text;
+            document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+        }
+
+        async function handleSend(e) {
+            e.preventDefault();
+            const input = document.getElementById('user-input');
+            const question = input.value.trim();
+            if (!question) return;
+
+            // Hide quick prompts
+            const quickPrompts = document.getElementById('quick-prompts');
+            if (quickPrompts) quickPrompts.style.display = 'none';
+
+            // Append User Bubble
+            appendUserMessage(question);
+            input.value = '';
+
+            // Append Typing Indicator
+            const typingId = appendTypingIndicator();
+
+            try {
+                const isHist = document.getElementById('chk-historical').checked;
+                const res = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        question: question,
+                        session_id: currentSessionId,
+                        include_historical: isHist
+                    })
+                });
+
+                if (!res.ok) throw new Error('API request failed');
+                const data = await res.json();
+                currentSessionId = data.session_id;
+
+                removeMessage(typingId);
+                appendAssistantMessage(data);
+            } catch (err) {
+                removeMessage(typingId);
+                appendErrorMessage("Unable to fetch response. Please verify the assistant service is running.");
+            }
+        }
+
+        function appendUserMessage(text) {
+            const container = document.getElementById('messages-container');
+            const div = document.createElement('div');
+            div.className = "flex items-start justify-end space-x-3";
+            div.innerHTML = `
+                <div class="bg-indigo-600 text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-sm max-w-xl text-sm leading-relaxed">
+                    ${escapeHtml(text)}
+                </div>
+                <div class="w-8 h-8 rounded-full bg-slate-200 text-slate-600 flex items-center justify-center text-xs font-bold">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendAssistantMessage(data) {
+            const container = document.getElementById('messages-container');
+            const div = document.createElement('div');
+            div.className = "flex items-start space-x-3";
+
+            // Warning badges
+            let warningsHtml = '';
+            if (data.warnings && data.warnings.length > 0) {
+                warningsHtml = data.warnings.map(w => `
+                    <div class="mb-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start space-x-2">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5"></i>
+                        <div><strong class="font-bold">${w.warning_type}:</strong> ${escapeHtml(w.message)}</div>
+                    </div>
+                `).join('');
+            }
+
+            // Citations cards
+            let citationsHtml = '';
+            if (data.citations && data.citations.length > 0) {
+                citationsHtml = `
+                    <div class="mt-4 pt-3 border-t border-slate-100">
+                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Verified Sources Cited</div>
+                        <div class="space-y-2">
+                            ${data.citations.map(c => `
+                                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs">
+                                    <div class="flex items-center justify-between mb-1">
+                                        <span class="font-bold text-slate-800">${escapeHtml(c.document_title)}</span>
+                                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${getStatusBadgeClass(c.status)}">${c.status}</span>
+                                    </div>
+                                    <div class="text-[11px] text-slate-500 mb-1.5 flex flex-wrap gap-x-3">
+                                        <span><i class="fa-regular fa-calendar mr-1"></i>Pub: ${c.publication_date || 'Undated'}</span>
+                                        ${c.effective_from ? `<span><i class="fa-solid fa-clock-rotate-left mr-1"></i>Eff: ${c.effective_from}</span>` : ''}
+                                        ${c.section_name ? `<span><i class="fa-solid fa-bookmark mr-1"></i>${escapeHtml(c.section_name)} (P.${c.page_number})</span>` : ''}
+                                    </div>
+                                    <div class="text-slate-600 bg-white p-2 rounded border border-slate-100 text-[11px] italic">
+                                        "${escapeHtml(c.quoted_snippet)}"
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Conditions block
+            let conditionsHtml = '';
+            if (data.conditions_and_exceptions) {
+                conditionsHtml = `
+                    <div class="mt-3 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 text-xs text-slate-700">
+                        <strong class="font-semibold text-indigo-950 block mb-1">Specific Conditions & Rules:</strong>
+                        <div class="whitespace-pre-line leading-relaxed text-slate-600">${escapeHtml(data.conditions_and_exceptions)}</div>
+                    </div>
+                `;
+            }
+
+            // Escalation
+            let escalationHtml = '';
+            if (data.escalation_office) {
+                escalationHtml = `
+                    <div class="mt-3 text-[11px] text-slate-500 flex items-center justify-between">
+                        <span><i class="fa-solid fa-building-columns mr-1 text-slate-400"></i>Official Escalation: <strong class="text-slate-700">${escapeHtml(data.escalation_office)}</strong></span>
+                        <div class="flex items-center space-x-1">
+                            <button onclick="sendFeedback('${data.message_id}', 1)" title="Helpful" class="hover:text-emerald-600 px-1"><i class="fa-regular fa-thumbs-up"></i></button>
+                            <button onclick="sendFeedback('${data.message_id}', -1)" title="Not helpful" class="hover:text-rose-600 px-1"><i class="fa-regular fa-thumbs-down"></i></button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            div.innerHTML = `
+                <div class="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm shadow">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm p-5 shadow-sm max-w-2xl text-slate-800 text-sm">
+                    ${warningsHtml}
+                    <div class="font-medium text-slate-900 leading-relaxed text-base">${escapeHtml(data.direct_answer)}</div>
+                    ${conditionsHtml}
+                    ${citationsHtml}
+                    ${escalationHtml}
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        function appendTypingIndicator() {
+            const container = document.getElementById('messages-container');
+            const div = document.createElement('div');
+            const id = 'typing-' + Date.now();
+            div.id = id;
+            div.className = "flex items-start space-x-3";
+            div.innerHTML = `
+                <div class="w-8 h-8 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs shadow">
+                    <i class="fa-solid fa-robot"></i>
+                </div>
+                <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm text-slate-400 text-xs flex items-center space-x-2">
+                    <i class="fa-solid fa-circle-notch fa-spin text-indigo-600"></i>
+                    <span>Consulting institutional rulebooks & route sheets...</span>
+                </div>
+            `;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+            return id;
+        }
+
+        function removeMessage(id) {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        }
+
+        function appendErrorMessage(msg) {
+            const container = document.getElementById('messages-container');
+            const div = document.createElement('div');
+            div.className = "flex items-center justify-center my-2";
+            div.innerHTML = `<span class="bg-rose-50 border border-rose-200 text-rose-700 text-xs px-3 py-1 rounded-full">${msg}</span>`;
+            container.appendChild(div);
+        }
+
+        async function sendFeedback(messageId, rating) {
+            try {
+                await fetch('/api/feedback', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message_id: messageId, rating: rating })
+                });
+                alert('Thank you! Your feedback helps ensure institutional policy accuracy.');
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function loadDocuments() {
+            const tbody = document.getElementById('docs-table-body');
+            try {
+                const res = await fetch('/api/documents');
+                const docs = await res.json();
+                document.getElementById('doc-count-badge').textContent = `${docs.length} Sources Active`;
+
+                tbody.innerHTML = docs.map(d => `
+                    <tr class="hover:bg-slate-50/80 transition">
+                        <td class="px-6 py-4 font-semibold text-slate-900">
+                            ${escapeHtml(d.title)}
+                            <div class="text-[11px] text-slate-400 font-normal">v${d.version} | ID: ${d.id.substring(0,8)}...</div>
+                        </td>
+                        <td class="px-6 py-4"><span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">${d.category}</span></td>
+                        <td class="px-6 py-4 text-xs font-medium text-slate-700">${d.issuing_department}</td>
+                        <td class="px-6 py-4 text-xs text-slate-500">${d.publication_date || '<span class="text-amber-600 font-medium">Undated</span>'}</td>
+                        <td class="px-6 py-4 text-xs text-slate-500">${d.effective_from || 'Immediate'} ${d.effective_until ? `to ${d.effective_until}` : ''}</td>
+                        <td class="px-6 py-4"><span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusBadgeClass(d.status)}">${d.status}</span></td>
+                        <td class="px-6 py-4 text-right">
+                            ${d.status === 'current' ? `
+                                <button onclick="deactivateDoc('${d.id}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2 py-1 rounded hover:bg-rose-50">
+                                    Deactivate
+                                </button>
+                            ` : `<span class="text-slate-400 text-xs italic">Archived</span>`}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center py-6 text-rose-500">Failed to load documents.</td></tr>`;
+            }
+        }
+
+        async function deactivateDoc(id) {
+            if (!confirm('Are you sure you want to deactivate this policy document from live search?')) return;
+            await fetch(`/api/documents/${id}/deactivate`, { method: 'POST' });
+            loadDocuments();
+            loadAuditTrail();
+        }
+
+        async function loadAuditTrail() {
+            const list = document.getElementById('audit-log-list');
+            try {
+                const res = await fetch('/api/audit');
+                const logs = await res.json();
+                list.innerHTML = logs.map(l => `
+                    <div class="px-4 py-2.5 text-xs flex items-center justify-between hover:bg-slate-50">
+                        <div class="flex items-center space-x-2">
+                            <span class="font-bold text-slate-700 uppercase tracking-wider text-[10px] bg-slate-100 px-1.5 py-0.5 rounded">${l.action}</span>
+                            <span class="text-slate-600">${escapeHtml(l.details || '')}</span>
+                        </div>
+                        <span class="text-slate-400 text-[11px]">${new Date(l.timestamp).toLocaleTimeString()}</span>
+                    </div>
+                `).join('');
+            } catch (e) {
+                list.innerHTML = `<div class="text-center py-4 text-slate-400 text-xs">Failed to load audit.</div>`;
+            }
+        }
+
+        function openUploadModal() { document.getElementById('upload-modal').classList.remove('hidden'); }
+        function closeUploadModal() { document.getElementById('upload-modal').classList.add('hidden'); }
+
+        async function handleUpload(e) {
+            e.preventDefault();
+            const payload = {
+                title: document.getElementById('m-title').value,
+                category: document.getElementById('m-category').value,
+                issuing_department: document.getElementById('m-dept').value,
+                publication_date: document.getElementById('m-pub-date').value || null,
+                effective_from: document.getElementById('m-eff-from').value || null,
+                effective_until: document.getElementById('m-eff-until').value || null,
+                content: document.getElementById('m-content').value,
+                status: 'current'
+            };
+
+            const res = await fetch('/api/documents', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                closeUploadModal();
+                loadDocuments();
+                loadAuditTrail();
+            } else {
+                alert('Upload failed. Check document parameters.');
+            }
+        }
+
+        function getStatusBadgeClass(status) {
+            switch(status) {
+                case 'current': return 'bg-emerald-100 text-emerald-800';
+                case 'superseded': return 'bg-purple-100 text-purple-800';
+                case 'expired': return 'bg-rose-100 text-rose-800';
+                case 'undated': return 'bg-amber-100 text-amber-800';
+                default: return 'bg-slate-100 text-slate-700';
+            }
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+</html>
