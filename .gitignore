@@ -1,0 +1,53 @@
+# Python & Virtual Environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+build/
+dist/
+*.egg-info/
+
+# Environment Variables & Secrets
+.env
+.env.local
+*.pem
+*.key
+
+# Data & Document uploads, vector stores & indexes
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/indexes/*
+!data/indexes/.gitkeep
+data/uploads/*
+!data/uploads/.gitkeep
+chroma_db/
+faiss_index/
+*.db
+*.sqlite
+*.sqlite3
+
+# Models & Weights Cache
+models/checkpoints/*
+!models/checkpoints/.gitkeep
+*.pt
+*.bin
+*.safetensors
+*.onnx
+
+# Node / Frontend (if any web UI is added)
+node_modules/
+frontend/dist/
+dist/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
