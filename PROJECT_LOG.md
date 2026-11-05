@@ -200,3 +200,4 @@ Hostel-Transport-Rules-Assistant/
 | **v1.0.1** | 2026-11-05 | Built dual-mode Student Chat and Admin Hub web interface (`static/index.html`); created full unit test suite covering chunking, supersession, and API endpoints (12/12 passing). | ✅ Completed |
 | **v1.1.0** | 2026-11-05 | Added automated real-time browser DOM test suite (`test_realtime_dom.py`) using Playwright with Google Chrome; verified UI interactions and DOM rendering; synchronized with GitHub. | ✅ Completed |
 | **v1.1.1** | 2026-11-05 | Created `PROJECT_LOG.md` detailing file rationales, contents, and cross-component interactions; referenced `docs/PROJECT_SPECIFICATION.md` for Charter, PRD, and Plan. | ✅ Completed |
+
