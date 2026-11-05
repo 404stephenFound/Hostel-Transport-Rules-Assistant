@@ -12,3 +12,4 @@ router = APIRouter()
 @router.get("", response_model=List[AuditEventResponse])
 def get_audit_trail(db: Session = Depends(get_db)):
     return db.query(AuditEvent).order_by(AuditEvent.timestamp.desc()).limit(50).all()
+

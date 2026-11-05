@@ -175,3 +175,4 @@ Automated washing machines in the laundry room are operational from 8:00 AM to 9
     ))
 
     db.commit()
+

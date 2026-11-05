@@ -90,3 +90,4 @@ class AuditEvent(Base):
     target_id = Column(String(100), nullable=True)
     details = Column(Text, nullable=True)
     timestamp = Column(DateTime, default=datetime.datetime.utcnow)
+

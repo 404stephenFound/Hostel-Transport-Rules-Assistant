@@ -64,3 +64,4 @@ if os.path.exists(static_dir):
     @app.get("/", include_in_schema=False)
     def serve_index():
         return FileResponse(os.path.join(static_dir, "index.html"))
+

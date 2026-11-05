@@ -79,3 +79,4 @@ def test_abstention_on_unsupported_query(test_db):
 
     assert "I could not find this rule" in res.direct_answer
     assert len(res.citations) == 0
+

@@ -54,3 +54,4 @@ def test_hybrid_retriever_bus_route(test_db):
     top_chunk, top_doc, score = results[0]
     assert "Route 4" in top_chunk.text or "Lakeview Colony" in top_chunk.text
     assert "Transport" in top_doc.title
+

@@ -25,3 +25,4 @@ def submit_feedback(req: FeedbackRequest, db: Session = Depends(get_db)):
     ))
     db.commit()
     return {"status": "success", "message": "Feedback recorded"}
+

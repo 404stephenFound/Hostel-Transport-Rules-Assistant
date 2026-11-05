@@ -18,3 +18,4 @@ ABSTENTION_MESSAGE = (
     "I could not find this rule in the approved hostel or transport documents currently available to me. "
     "I do not want to guess. Please contact the relevant office or ask an administrator to add the latest notice."
 )
+

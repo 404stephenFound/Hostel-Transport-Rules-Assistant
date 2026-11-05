@@ -141,3 +141,4 @@ class RAGAnswerGenerator:
             escalation_office=escalation,
             full_response=full_response
         )
+
