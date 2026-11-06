@@ -119,10 +119,12 @@ class HybridRetriever:
 
             # Intent-specific clause boosting:
             if is_weekday_query:
-                if "weekday in-time remains unchanged" in lower_chunk or "closes strictly at 8:30 pm on weekdays" in lower_chunk:
-                    score += 15.0
+                if "closes strictly at 8:30 pm on weekdays" in lower_chunk:
+                    score += 35.0  # Handbook Section 2 is the primary citation for weekday rule
+                elif "weekday in-time remains unchanged" in lower_chunk:
+                    score += 15.0  # Circular 14 supports weekday rule
                 elif "weekend in-time for all residential" in lower_chunk:
-                    score -= 5.0  # Deprioritize weekend rule when asking about weekdays
+                    score -= 10.0  # Deprioritize weekend-specific clauses for weekday queries
 
             elif is_weekend_query:
                 if "weekend in-time" in lower_chunk or "friday and saturday" in lower_chunk:

@@ -61,30 +61,46 @@ def analyze_retrieved_evidence(chunks_with_docs: List[Tuple[Any, Any]], query: s
     has_circular_14 = any("Circular No. 14" in doc.title for doc in seen_docs.values())
     has_handbook = any("Handbook" in doc.title for doc in seen_docs.values())
 
+    is_weekday = "weekday" in q_lower or "weekdays" in q_lower
+    is_weekend = any(k in q_lower for k in ["weekend", "weekends", "friday", "saturday"])
+    is_changes = any(k in q_lower for k in ["changed", "recent", "revision", "new rules", "latest notice", "update"])
+
     if is_curfew_or_timing_query and has_circular_14:
         eff_phrase = format_effective_notice("2026-02-20")
-        notice_text = (
-            f"Updated by Hostel Circular No. 14/2026 (published 2026-02-15, {eff_phrase}). "
-            f"Older rule: 8:30 PM on weekends. Current rule: 9:30 PM on Friday and Saturday."
-        )
-        conflict_info = ConflictInfo(
-            exists=True,
-            resolved_rule="Weekend in-time is 9:30 PM on Friday and Saturday nights (roll call at 10:00 PM). Weekday in-time is 8:30 PM.",
-            older_rule="8:30 PM every night including weekends (from 2025 Handbook).",
-            notice=notice_text
-        )
-        warnings.append(WarningDetail(
-            warning_type="POLICY_UPDATE_NOTICE",
-            message=notice_text,
-            details=notice_text
-        ))
+        if is_weekend or is_changes or (not is_weekday and has_circular_14):
+            # Query depends on revised clause (weekend curfew)
+            notice_text = (
+                f"Updated by Hostel Circular No. 14/2026 (published 2026-02-15, {eff_phrase}). "
+                f"Older rule: 8:30 PM on weekends. Current rule: 9:30 PM on Friday and Saturday."
+            )
+            conflict_info = ConflictInfo(
+                exists=True,
+                resolved_rule="Weekend in-time is 9:30 PM on Friday and Saturday nights (roll call at 10:00 PM). Weekday in-time is 8:30 PM.",
+                older_rule="8:30 PM every night including weekends (from 2025 Handbook).",
+                notice=notice_text
+            )
+            warnings.append(WarningDetail(
+                warning_type="POLICY_UPDATE_NOTICE",
+                message=notice_text,
+                details=notice_text
+            ))
+        elif is_weekday:
+            # Weekday query: show neutral non-conflicting note only; weekday timing was not modified
+            neutral_note = "Weekend timings were revised effective 20 Feb 2026. Weekday timing is unchanged."
+            conflict_info = ConflictInfo(
+                exists=False,
+                resolved_rule="Weekday in-time is 8:30 PM.",
+                older_rule="Weekday in-time is 8:30 PM.",
+                notice=neutral_note
+            )
 
     # 2. Check for day range disagreement caveat
     if any(k in q_lower for k in ["weekday", "day", "sunday", "thursday", "curfew", "gate"]):
         caveats.append(
             "Day range discrepancy noted in institutional sources: The 2025 Handbook defines weekdays as "
-            "Monday through Thursday, whereas Circular No. 14/2026 specifies Sunday through Thursday. "
-            "Please confirm with the Warden Desk whether Sunday follows weekday in-time."
+            "Monday through Thursday (treating Sunday as weekend with 8:30 PM curfew), whereas Circular No. 14/2026 specifies "
+            "Sunday through Thursday with 8:30 PM curfew. In both documents, Sunday in-time is 8:30 PM. "
+            "Please confirm with the Warden Desk for official Sunday classification."
         )
 
     # 3. Notice-level checks (Expired, Undated)

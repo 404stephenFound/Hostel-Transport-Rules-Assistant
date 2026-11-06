@@ -63,5 +63,9 @@ if os.path.exists(static_dir):
 
     @app.get("/", include_in_schema=False)
     def serve_index():
-        return FileResponse(os.path.join(static_dir, "index.html"))
+        response = FileResponse(os.path.join(static_dir, "index.html"))
+        response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+        return response
 

@@ -1,10 +1,13 @@
 import datetime
 import hashlib
 import json
+import logging
 from sqlalchemy.orm import Session
 
 from app.models import Document, DocumentChunk, AuditEvent
 from app.rag.chunker import chunk_document_text
+
+logger = logging.getLogger(__name__)
 
 
 def seed_database(db: Session, force: bool = False):
@@ -155,6 +158,12 @@ Automated washing machines in the laundry room are operational from 8:00 AM to 9
 
     created_docs = []
     for d in docs_data:
+        # Ingestion validation & logging for date metadata
+        if not d.get("publication_date"):
+            logger.warning("Ingestion Warning: Document '%s' is missing publication_date metadata.", d.get("title"))
+        if not d.get("effective_from"):
+            logger.warning("Ingestion Warning: Document '%s' is missing effective_from metadata.", d.get("title"))
+
         content = d.pop("content")
         f_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
         

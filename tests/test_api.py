@@ -42,11 +42,20 @@ def test_student_chat_query_endpoint(test_db):
     
     assert res.session_id is not None
     assert "8:30 PM" in res.answer
+    assert "Monday to Thursday" in res.answer
     assert res.applies_to is not None
     assert "Weekdays" in res.applies_to
+    assert res.day_range is not None
+    assert "Monday" in res.day_range and "Thursday" in res.day_range and "Sunday" in res.day_range
     assert len(res.sources) >= 1
-    assert res.sources[0].doc_title is not None
+    # Primary citation must be Handbook listed first
+    assert "Handbook" in res.sources[0].doc_title
+    assert len(res.sources[0].quote) > 20
+    assert res.sources[0].publication_date == "2025-07-20"
+    assert res.sources[0].effective_from == "2025-08-01"
     assert "Hostel" in res.escalation_office
+    # Policy update notice should not flag conflict for weekday query
+    assert res.conflict.exists is False
     # Ensure day range caveat is attached
     assert any("discrepancy" in c.lower() or "sunday" in c.lower() for c in res.caveats)
 

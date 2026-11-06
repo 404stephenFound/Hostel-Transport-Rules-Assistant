@@ -1,112 +1,95 @@
 import json
-from app.database import SessionLocal, engine, Base
+from app.database import SessionLocal
 import app.models
 from app.api.chat import submit_chat_query
 from app.schemas import ChatRequest
 
-def run_5_test_queries():
+def run_deliverables_verification():
     db = SessionLocal()
-    
-    test_cases = [
-        {
-            "id": 1,
-            "name": "Weekday In-Time Query",
-            "query": "What is the hostel entry gate closing time on weekdays?",
-            "include_historical": False
-        },
-        {
-            "id": 2,
-            "name": "Weekend In-Time Query",
-            "query": "What is the hostel entry gate closing time on weekends?",
-            "include_historical": False
-        },
-        {
-            "id": 3,
-            "name": "Recent Policy Changes Query",
-            "query": "What changed recently in the hostel rules?",
-            "include_historical": False
-        },
-        {
-            "id": 4,
-            "name": "Superseded / Historical Rules Query",
-            "query": "What were the old weekend curfew rules before the revision?",
-            "include_historical": True
-        },
-        {
-            "id": 5,
-            "name": "Unsupported / Out-of-Scope Query (Refusal & Escalation)",
-            "query": "Can day scholars book overnight hostel rooms for campus festivals?",
-            "include_historical": False
-        }
-    ]
-
-    results = []
 
     print("=" * 80)
-    print("      5 TEST QUERIES VERIFICATION RUN")
+    print("      DELIVERABLE: TEST QUERY EXECUTED 3 CONSECUTIVE TIMES")
     print("=" * 80)
 
-    for tc in test_cases:
-        req = ChatRequest(
-            question=tc["query"],
-            include_historical=tc["include_historical"]
-        )
+    for run_i in range(1, 4):
+        print(f"\n==================== [RUN {run_i}/3] ====================")
+        req = ChatRequest(question="What is the hostel entry gate closing time on weekdays?")
         res = submit_chat_query(req, db=db)
+        data = res.model_dump()
 
-        tc_output = {
-            "test_id": tc["id"],
-            "title": tc["name"],
-            "query": tc["query"],
-            "include_historical": tc["include_historical"],
-            "structured_output": {
-                "answer": res.answer,
-                "applies_to": res.applies_to,
-                "effective_date": res.effective_date,
-                "caveats": res.caveats,
-                "rule_summary": res.rule_summary,
-                "sources": [
-                    {
-                        "doc_title": s.doc_title,
-                        "section": s.section,
-                        "page": s.page,
-                        "status": s.status,
-                        "quote": s.quote
-                    }
-                    for s in res.sources
-                ],
-                "conflict": {
-                    "exists": res.conflict.exists,
-                    "resolved_rule": res.conflict.resolved_rule,
-                    "older_rule": res.conflict.older_rule,
-                    "notice": res.conflict.notice
-                },
-                "escalation_office": res.escalation_office
-            }
-        }
-        results.append(tc_output)
+        print("--- FULL JSON OUTPUT ---")
+        print(json.dumps(data, indent=2))
 
-        print(f"\n--- [TEST {tc['id']}: {tc['name']}] ---")
-        print(f"QUERY: \"{tc['query']}\" (include_historical={tc['include_historical']})")
-        print(f"DIRECT ANSWER: {res.answer}")
-        print(f"APPLIES TO:    {res.applies_to}")
-        print(f"EFFECTIVE:     {res.effective_date}")
-        if res.conflict.exists:
-            print(f"CONFLICT NOTICE: {res.conflict.notice}")
-        if res.caveats:
-            print(f"CAVEATS: {res.caveats}")
-        print("RULE SUMMARY:")
-        for r in res.rule_summary:
+        print("\n--- RENDERED FRONTEND VIEW ---")
+        print(f"Direct Answer:     {data['answer']}")
+        print(f"Day Range:         {data['day_range']}")
+        print(f"Applies To:        {data['applies_to']}")
+        print(f"Effective Date:    {data['effective_date']}")
+        if data['conflict']['exists']:
+            print(f"Policy Notice:     {data['conflict']['notice']}")
+        else:
+            print(f"Policy Notice:     None (Neutral note: '{data['conflict'].get('notice')}')")
+        print("Rule Summary:")
+        for r in data['rule_summary']:
             print(f"  • {r}")
-        print("CITATIONS:")
-        for s in res.sources:
-            print(f"  [{s.status}] {s.doc_title} • {s.section} (Page {s.page}): \"{s.quote}\"")
-        print(f"ESCALATION: {res.escalation_office}")
+        print("Important Caveats:")
+        for c in data['caveats']:
+            print(f"  • {c}")
+        print("Verified Sources Cited:")
+        for s in data['sources']:
+            print(f"  • [{s['status']}] {s['doc_title']} (Section: {s['section']}, Page {s['page']})")
+            print(f"    Pub: {s['publication_date']} · Eff: {s['effective_from']}")
+            print(f"    Quote: \"{s['quote']}\"")
+        print(f"Escalation Office: {data['escalation_office']}")
+
+    print("\n" + "=" * 80)
+    print("      DELIVERABLE: ADDITIONAL REQUIRED TEST QUERIES")
+    print("=" * 80)
+
+    # 1. Weekend closing time
+    print("\n--- [ADDITIONAL TEST 1: Weekend Closing Time] ---")
+    req_weekend = ChatRequest(question="What is the hostel entry gate closing time on weekends?")
+    res_weekend = submit_chat_query(req_weekend, db=db)
+    data_weekend = res_weekend.model_dump()
+    print(f"Answer:         {data_weekend['answer']}")
+    print(f"Day Range:      {data_weekend['day_range']}")
+    print(f"Applies To:     {data_weekend['applies_to']}")
+    print(f"Effective Date: {data_weekend['effective_date']}")
+    if data_weekend['conflict']['exists']:
+        print(f"Policy Notice:  {data_weekend['conflict']['notice']}")
+    print("Sources:")
+    for s in data_weekend['sources']:
+        print(f"  • [{s['status']}] {s['doc_title']} | Pub: {s['publication_date']} · Eff: {s['effective_from']}")
+        print(f"    Quote: \"{s['quote']}\"")
+
+    # 2. What changed recently
+    print("\n--- [ADDITIONAL TEST 2: What Changed Recently] ---")
+    req_changes = ChatRequest(question="What changed recently in the hostel rules?")
+    res_changes = submit_chat_query(req_changes, db=db)
+    data_changes = res_changes.model_dump()
+    print(f"Answer:         {data_changes['answer']}")
+    print(f"Day Range:      {data_changes['day_range']}")
+    print(f"Applies To:     {data_changes['applies_to']}")
+    if data_changes['conflict']['exists']:
+        print(f"Policy Notice:  {data_changes['conflict']['notice']}")
+    print("Rule Summary:")
+    for r in data_changes['rule_summary']:
+        print(f"  • {r}")
+    print("Sources:")
+    for s in data_changes['sources']:
+        print(f"  • [{s['status']}] {s['doc_title']} | Pub: {s['publication_date']} · Eff: {s['effective_from']}")
+        print(f"    Quote: \"{s['quote']}\"")
+
+    # 3. No source (Refuse and escalate cleanly)
+    print("\n--- [ADDITIONAL TEST 3: Out-of-Scope Query (Refuse & Escalate)] ---")
+    req_unsupported = ChatRequest(question="Can day scholars book overnight hostel rooms for campus festivals?")
+    res_unsupported = submit_chat_query(req_unsupported, db=db)
+    data_unsupported = res_unsupported.model_dump()
+    print(f"Answer:         {data_unsupported['answer']}")
+    print(f"Sources Count:  {len(data_unsupported['sources'])}")
+    print(f"Escalation:     {data_unsupported['escalation_office']}")
 
     db.close()
-    
-    with open("test_artifacts/test_5_queries_results.json", "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=2)
-    print("\nResults saved to test_artifacts/test_5_queries_results.json")
 
 if __name__ == "__main__":
-    run_5_test_queries()
+    run_deliverables_verification()

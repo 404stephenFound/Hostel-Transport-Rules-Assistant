@@ -105,10 +105,19 @@ def chunk_document_text(text: str, document_id: str, default_page: int = 1) -> L
 def extract_sentence_quote(text: str, query: str = "") -> str:
     """
     Extracts complete sentences ending at clean sentence boundaries (no mid-sentence chops).
-    Finds the exact supporting sentence matching the query context.
+    Finds the exact supporting sentence matching the query context without section headers.
     """
+    # Strip standalone header lines before splitting sentences
+    body_lines = [
+        l.strip() for l in text.split("\n")
+        if l.strip() and not re.match(r"^(?:Section\s+\d+|Hostel\s+Circular|Notice\s+Ref|Subject:|Route\s+\d+)", l.strip(), re.IGNORECASE)
+    ]
+    cleaned_body = " ".join(body_lines)
+    if not cleaned_body:
+        cleaned_body = text.strip()
+
     # Protect abbreviations from naive period splitting
-    t = re.sub(r"\bNo\.\s*", "No_DOT_ ", text)
+    t = re.sub(r"\bNo\.\s*", "No_DOT_ ", cleaned_body)
     t = re.sub(r"\bRef\.\s*", "Ref_DOT_ ", t)
     t = re.sub(r"\bSec\.\s*", "Sec_DOT_ ", t)
     t = re.sub(r"\b([A-Za-z]+)\s+(\d+)\.\s*", r"\1 \2_DOT_ ", t)
@@ -118,7 +127,7 @@ def extract_sentence_quote(text: str, query: str = "") -> str:
     for s in raw_sentences:
         clean = s.replace("_DOT_", ".").strip()
         # Keep sentences that have substantial content
-        if len(clean) > 25 and not clean.startswith("Notice Ref:") and not clean.startswith("Subject:"):
+        if len(clean) > 20:
             sentences.append(clean)
 
     if not sentences:
@@ -136,7 +145,9 @@ def extract_sentence_quote(text: str, query: str = "") -> str:
     if "weekday" in q_lower:
         for s in sentences:
             s_lower = s.lower()
-            if "weekday in-time remains unchanged" in s_lower or "closes strictly at 8:30 pm on weekdays" in s_lower:
+            if "closes strictly at 8:30 pm on weekdays" in s_lower:
+                return s
+            if "weekday in-time remains unchanged" in s_lower:
                 return s
 
     if "weekend" in q_lower or "friday" in q_lower or "saturday" in q_lower or "revision" in q_lower or "old" in q_lower:

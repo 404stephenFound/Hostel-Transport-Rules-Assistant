@@ -1,4 +1,5 @@
 import hashlib
+import logging
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -7,6 +8,8 @@ from app.database import get_db
 from app.models import Document, DocumentChunk, AuditEvent
 from app.schemas import DocumentCreate, DocumentResponse
 from app.rag.chunker import chunk_document_text
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -35,6 +38,11 @@ def get_document(document_id: str, db: Session = Depends(get_db)):
 
 @router.post("", response_model=DocumentResponse, status_code=201)
 def create_and_index_document(doc_in: DocumentCreate, db: Session = Depends(get_db)):
+    if not doc_in.publication_date:
+        logger.warning("Ingestion Warning: Uploaded document '%s' is missing publication_date metadata.", doc_in.title)
+    if not doc_in.effective_from:
+        logger.warning("Ingestion Warning: Uploaded document '%s' is missing effective_from metadata.", doc_in.title)
+
     f_hash = hashlib.sha256(doc_in.content.encode("utf-8")).hexdigest()
     
     # Check duplicate

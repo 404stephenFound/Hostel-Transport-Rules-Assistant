@@ -9,9 +9,12 @@ class SourceItem(BaseModel):
     section: Optional[str] = "General"
     page: Optional[int] = 1
     quote: str
+    exact_quote: Optional[str] = ""
+    quoted_snippet: Optional[str] = ""
     status: str
     publication_date: Optional[str] = None
     effective_date: Optional[str] = None
+    effective_from: Optional[str] = None
 
     @property
     def document_title(self) -> str:
@@ -24,10 +27,6 @@ class SourceItem(BaseModel):
     @property
     def page_number(self) -> Optional[int]:
         return self.page
-
-    @property
-    def exact_quote(self) -> str:
-        return self.quote
 
 
 class WarningDetail(BaseModel):
@@ -42,8 +41,13 @@ class CitationItem(BaseModel):
     document_title: str
     section_name: Optional[str] = "General"
     page_number: Optional[int] = 1
-    exact_quote: str
+    quote: str = ""
+    exact_quote: str = ""
+    quoted_snippet: str = ""
     status: str
+    publication_date: Optional[str] = None
+    effective_date: Optional[str] = None
+    effective_from: Optional[str] = None
 
 
 class ConflictInfo(BaseModel):
@@ -63,22 +67,19 @@ class StructuredChatResponse(BaseModel):
     session_id: str
     message_id: str
     answer: str
+    direct_answer: str = ""
+    day_range: str = ""
     applies_to: Optional[str] = None
     effective_date: Optional[str] = None
     caveats: List[str] = []
     rule_summary: List[str] = []
+    conditions: List[str] = []
     sources: List[SourceItem] = []
+    citations: List[CitationItem] = []
+    warnings: List[WarningDetail] = []
     conflict: ConflictInfo = ConflictInfo()
     escalation_office: str = "Hostel Administration Office (Warden Desk / Ext. 102)"
     full_response: str = ""
-
-    @property
-    def direct_answer(self) -> str:
-        return self.answer
-
-    @property
-    def citations(self) -> List[SourceItem]:
-        return self.sources
 
 
 # Backward compatible alias
