@@ -152,10 +152,15 @@
                 <!-- Audit Log Section -->
                 <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
-                        <h3 class="font-bold text-slate-800 text-sm">System Audit History</h3>
-                        <span class="text-xs text-slate-400">Logged actions & query telemetry</span>
+                        <div>
+                            <h3 class="font-bold text-slate-800 text-sm">System Audit History & Request Traces</h3>
+                            <span class="text-xs text-slate-400">Logged actions, query telemetry, and retrieval debug traces</span>
+                        </div>
+                        <button onclick="loadAuditTrail()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1 rounded-lg font-medium transition">
+                            <i class="fa-solid fa-arrows-rotate mr-1"></i> Refresh
+                        </button>
                     </div>
-                    <div id="audit-log-list" class="divide-y divide-slate-100 max-h-64 overflow-y-auto custom-scrollbar p-2">
+                    <div id="audit-log-list" class="divide-y divide-slate-100 max-h-72 overflow-y-auto custom-scrollbar p-2">
                         <div class="text-center py-6 text-slate-400 text-xs">Loading audit trail...</div>
                     </div>
                 </div>
@@ -217,6 +222,27 @@
                     <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold shadow">Publish and Index</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal for Inspecting Debug Trace -->
+    <div id="trace-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-6 space-y-4 max-h-[85vh] flex flex-col">
+            <div class="flex items-center justify-between border-b pb-3 border-slate-100">
+                <div>
+                    <h3 class="font-bold text-lg text-slate-900 flex items-center">
+                        <i class="fa-solid fa-code text-indigo-600 mr-2"></i> Query Debug Trace Inspector
+                    </h3>
+                    <p class="text-xs text-slate-500">Inspection of retrieved chunk scores, chosen rule clause, latency, and verification facts</p>
+                </div>
+                <button onclick="closeTraceModal()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="overflow-y-auto flex-1 custom-scrollbar">
+                <pre id="trace-json-content" class="bg-slate-900 text-emerald-400 p-4 rounded-xl text-xs font-mono whitespace-pre-wrap leading-relaxed overflow-x-auto"></pre>
+            </div>
+            <div class="pt-2 flex justify-end">
+                <button type="button" onclick="closeTraceModal()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-semibold">Close Inspector</button>
+            </div>
         </div>
     </div>
 
@@ -601,20 +627,69 @@
             loadAuditTrail();
         }
 
+        let activeTracesMap = {};
+
+        function openTraceModal(traceKey) {
+            const data = activeTracesMap[traceKey];
+            if (!data) return;
+            document.getElementById('trace-json-content').textContent = JSON.stringify(data, null, 2);
+            document.getElementById('trace-modal').classList.remove('hidden');
+        }
+
+        function closeTraceModal() {
+            document.getElementById('trace-modal').classList.add('hidden');
+        }
+
         async function loadAuditTrail() {
             const list = document.getElementById('audit-log-list');
             try {
                 const res = await fetch('/api/audit');
                 const logs = await res.json();
-                list.innerHTML = logs.map(l => `
-                    <div class="px-4 py-2.5 text-xs flex items-center justify-between hover:bg-slate-50">
-                        <div class="flex items-center space-x-2">
-                            <span class="font-bold text-slate-700 uppercase tracking-wider text-[10px] bg-slate-100 px-1.5 py-0.5 rounded">${l.action}</span>
-                            <span class="text-slate-600">${escapeHtml(l.details || '')}</span>
+                activeTracesMap = {};
+
+                list.innerHTML = logs.map(l => {
+                    let isTrace = false;
+                    let traceObj = null;
+                    if (l.action === 'QUERY_TRACE' || (l.details && l.details.trim().startsWith('{'))) {
+                        try {
+                            traceObj = JSON.parse(l.details);
+                            isTrace = true;
+                            activeTracesMap[l.id] = traceObj;
+                        } catch (e) {}
+                    }
+
+                    const actionLabel = formatEnumLabel(l.action);
+
+                    if (isTrace && traceObj) {
+                        return `
+                            <div class="px-4 py-3 text-xs flex items-center justify-between hover:bg-indigo-50/50 rounded-xl transition">
+                                <div class="flex items-center space-x-3 overflow-hidden pr-3">
+                                    <span class="font-bold uppercase tracking-wider text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full shrink-0">
+                                        <i class="fa-solid fa-code mr-1"></i>${actionLabel}
+                                    </span>
+                                    <span class="font-medium text-slate-800 truncate">"${escapeHtml(traceObj.query || '')}"</span>
+                                    <span class="text-slate-400 text-[11px] shrink-0">(${traceObj.latency_ms || 0}ms · ${traceObj.retrieved_chunk_ids_with_scores ? traceObj.retrieved_chunk_ids_with_scores.length : 0} chunks)</span>
+                                </div>
+                                <div class="flex items-center space-x-2 shrink-0">
+                                    <button onclick="openTraceModal('${l.id}')" class="px-2.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-md text-[11px] font-semibold flex items-center shadow-sm">
+                                        <i class="fa-solid fa-magnifying-glass mr-1"></i> Inspect Trace
+                                    </button>
+                                    <span class="text-slate-400 text-[11px]">${new Date(l.timestamp).toLocaleTimeString()}</span>
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    return `
+                        <div class="px-4 py-2.5 text-xs flex items-center justify-between hover:bg-slate-50">
+                            <div class="flex items-center space-x-2">
+                                <span class="font-bold text-slate-700 uppercase tracking-wider text-[10px] bg-slate-100 px-1.5 py-0.5 rounded">${actionLabel}</span>
+                                <span class="text-slate-600">${escapeHtml(l.details || '')}</span>
+                            </div>
+                            <span class="text-slate-400 text-[11px]">${new Date(l.timestamp).toLocaleTimeString()}</span>
                         </div>
-                        <span class="text-slate-400 text-[11px]">${new Date(l.timestamp).toLocaleTimeString()}</span>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } catch (e) {
                 list.innerHTML = `<div class="text-center py-4 text-slate-400 text-xs">Failed to load audit.</div>`;
             }

@@ -1,0 +1,211 @@
+[
+  {
+    "id": "1_weekday_curfew",
+    "name": "Weekday entry gate closing time",
+    "query": "What is the hostel entry gate closing time on weekdays?",
+    "include_historical": false,
+    "expected_times": ["8:30 PM"],
+    "expected_days": ["Monday", "Thursday"],
+    "expected_doc": "Hostel Student Handbook 2025-2026",
+    "should_have_notice": false,
+    "should_refuse": false
+  },
+  {
+    "id": "2_weekend_curfew",
+    "name": "Weekend entry gate closing time",
+    "query": "What is the hostel entry gate closing time on weekends?",
+    "include_historical": false,
+    "expected_times": ["9:30 PM"],
+    "expected_days": ["Friday", "Saturday"],
+    "expected_doc": "Hostel Circular No. 14/2026",
+    "should_have_notice": true,
+    "should_refuse": false
+  },
+  {
+    "id": "3_sunday_timing",
+    "name": "Sunday hostel closing time",
+    "query": "What is the hostel entry gate closing time on Sunday?",
+    "include_historical": false,
+    "expected_times": ["8:30 PM"],
+    "expected_days": ["Sunday"],
+    "expected_doc": "Hostel Student Handbook 2025-2026",
+    "should_have_notice": false,
+    "should_refuse": false
+  },
+  {
+    "id": "4_what_changed_recently",
+    "name": "What changed recently query",
+    "query": "what changed recently",
+    "include_historical": false,
+    "expected_times": ["9:30 PM"],
+    "expected_days": ["Friday", "Saturday"],
+    "expected_doc": "Hostel Circular No. 14/2026",
+    "should_have_notice": true,
+    "should_refuse": false
+  },
+  {
+    "id": "5_outstation_leave",
+    "name": "Outstation leave procedure",
+    "query": "What is the procedure for overnight outstation leave?",
+    "include_historical": false,
+    "expected_times": [],
+    "expected_days": [],
+    "expected_keywords": ["leave", "portal", "parental"],
+    "expected_doc": "Hostel Student Handbook 2025-2026",
+    "should_have_notice": false,
+    "should_refuse": false
+  },
+  {
+    "id": "6_bus_route_pickup",
+    "name": "Bus route 1 pickup timings and stops",
+    "query": "What are the morning pickup timings and stops for Route 1 North Line bus?",
+    "include_historical": false,
+    "expected_times": ["7:00 AM"],
+    "expected_days": [],
+    "expected_keywords": ["Railway Station", "Route 1"],
+    "expected_doc": "College Transport Services & Route Schedule 2025-2026",
+    "should_have_notice": false,
+    "should_refuse": false
+  },
+  {
+    "id": "7_bus_evening_departure",
+    "name": "Evening bus departure schedule",
+    "query": "What time do college buses depart from campus in the evening on weekdays?",
+    "include_historical": false,
+    "expected_times": ["5:15 PM"],
+    "expected_days": ["Monday", "Friday"],
+    "expected_keywords": ["5:15 PM", "Bus Bay"],
+    "expected_doc": "College Transport Services & Route Schedule 2025-2026",
+    "should_have_notice": false,
+    "should_refuse": false
+  },
+  {
+    "id": "8_dated_before_circular",
+    "name": "Question dated before Circular 14 effective date",
+    "query": "On 15 January 2026, what was the weekend hostel closing time?",
+    "today_date": "2026-01-15",
+    "include_historical": false,
+    "expected_times": ["8:30 PM"],
+    "expected_days": [],
+    "expected_doc": "Hostel Student Handbook 2025-2026",
+    "should_have_notice": false,
+    "should_refuse": false
+  },
+  {
+    "id": "9_dated_after_circular",
+    "name": "Question dated after Circular 14 effective date",
+    "query": "In March 2026, what is the weekend hostel entry gate closing time?",
+    "today_date": "2026-03-01",
+    "include_historical": false,
+    "expected_times": ["9:30 PM"],
+    "expected_days": ["Friday", "Saturday"],
+    "expected_doc": "Hostel Circular No. 14/2026",
+    "should_have_notice": true,
+    "should_refuse": false
+  },
+  {
+    "id": "10_vague_curfew",
+    "name": "Vague question asking when to be back",
+    "query": "what time do I need to be back?",
+    "include_historical": false,
+    "expected_times": ["8:30 PM", "9:30 PM"],
+    "expected_days": ["Monday", "Friday"],
+    "expected_doc": "Hostel Student Handbook 2025-2026",
+    "should_have_notice": false,
+    "should_refuse": false
+  },
+  {
+    "id": "11_typos_curfew",
+    "name": "Query with typos for weekday gate closing",
+    "query": "hostle gate closing tym weekdys",
+    "include_historical": false,
+    "expected_times": ["8:30 PM"],
+    "expected_days": ["Monday", "Thursday"],
+    "expected_doc": "Hostel Student Handbook 2025-2026",
+    "should_have_notice": false,
+    "should_refuse": false
+  },
+  {
+    "id": "12_mixed_hostel_bus",
+    "name": "Mixed hostel closing and bus departure query",
+    "query": "What time is the hostel gate closing on weekdays and when does the evening bus depart?",
+    "include_historical": false,
+    "expected_times": ["8:30 PM", "5:15 PM"],
+    "expected_days": ["Monday"],
+    "expected_doc": "Hostel Student Handbook 2025-2026",
+    "should_have_notice": false,
+    "should_refuse": false
+  },
+  {
+    "id": "13_superseded_off",
+    "name": "Superseded checkbox off for old weekend rule",
+    "query": "What was the previous weekend curfew prior to the revision?",
+    "include_historical": false,
+    "expected_times": ["8:30 PM"],
+    "expected_days": [],
+    "expected_doc": "Hostel Student Handbook 2025-2026",
+    "should_have_notice": false,
+    "should_refuse": false
+  },
+  {
+    "id": "14_superseded_on",
+    "name": "Superseded checkbox on for old weekend rule",
+    "query": "What was the previous weekend curfew prior to the revision?",
+    "include_historical": true,
+    "expected_times": ["8:30 PM"],
+    "expected_days": [],
+    "expected_doc": "Hostel Student Handbook 2025-2026",
+    "should_have_notice": false,
+    "should_refuse": false
+  },
+  {
+    "id": "15_out_of_scope_mess",
+    "name": "Out of scope: Mess dinner menu",
+    "query": "What is the menu for dinner in the mess on Wednesday?",
+    "include_historical": false,
+    "should_refuse": true
+  },
+  {
+    "id": "16_out_of_scope_exam",
+    "name": "Out of scope: Final semester exam dates",
+    "query": "When do the final semester exam dates start this year?",
+    "include_historical": false,
+    "should_refuse": true
+  },
+  {
+    "id": "17_out_of_scope_fee",
+    "name": "Out of scope: Tuition fee refund policy",
+    "query": "What is the policy for tuition fee refund after withdrawal?",
+    "include_historical": false,
+    "should_refuse": true
+  },
+  {
+    "id": "18_out_of_scope_gk",
+    "name": "Out of scope: Capital of Australia",
+    "query": "What is the capital of Australia?",
+    "include_historical": false,
+    "should_refuse": true
+  },
+  {
+    "id": "19_late_entry_penalty",
+    "name": "Late entry fine policy",
+    "query": "What is the penalty fine for late entry into the hostel without a gate pass?",
+    "include_historical": false,
+    "expected_times": ["8:30 PM"],
+    "expected_keywords": ["200", "fine"],
+    "expected_doc": "Hostel Student Handbook 2025-2026",
+    "should_have_notice": false,
+    "should_refuse": false
+  },
+  {
+    "id": "20_roll_call_timing",
+    "name": "Hostel floor roll call timing",
+    "query": "What time is daily hostel roll call conducted on weekdays?",
+    "include_historical": false,
+    "expected_times": ["9:30 PM"],
+    "expected_days": ["Monday"],
+    "expected_doc": "Hostel Student Handbook 2025-2026",
+    "should_have_notice": false,
+    "should_refuse": false
+  }
+]

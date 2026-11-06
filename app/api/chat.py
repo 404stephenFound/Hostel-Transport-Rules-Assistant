@@ -1,5 +1,8 @@
 import json
 import uuid
+import time
+import os
+import datetime
 from typing import List, Any
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -14,9 +17,22 @@ from app.llm.generator import RAGAnswerGenerator
 router = APIRouter()
 generator = RAGAnswerGenerator()
 
+TRACES_FILE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "request_traces.jsonl")
+
+
+def log_request_trace_jsonl(record: dict):
+    try:
+        os.makedirs(os.path.dirname(os.path.abspath(TRACES_FILE_PATH)), exist_ok=True)
+        with open(TRACES_FILE_PATH, "a", encoding="utf-8") as f:
+            f.write(json.dumps(record, default=str) + "\n")
+    except Exception as e:
+        print(f"Warning: Failed to append to request_traces.jsonl: {e}")
+
 
 @router.post("", response_model=StructuredChatResponse)
 def submit_chat_query(req: ChatRequest, db: Session = Depends(get_db)) -> Any:
+    start_time = time.time()
+
     # 1. Manage session
     session_id = req.session_id
     if not session_id:
@@ -51,7 +67,11 @@ def submit_chat_query(req: ChatRequest, db: Session = Depends(get_db)) -> Any:
 
     # 3. Analyze retrieved evidence for clause supersessions and conflicts
     chunks_with_docs = [(chunk, doc) for chunk, doc, _ in retrieved_items]
-    analysis = analyze_retrieved_evidence(chunks_with_docs, query=req.question)
+    analysis = analyze_retrieved_evidence(
+        chunks_with_docs, 
+        query=req.question, 
+        today_date=req.today_date
+    )
 
     # 4. Generate grounded structured response
     assistant_msg_id = str(uuid.uuid4())
@@ -60,8 +80,38 @@ def submit_chat_query(req: ChatRequest, db: Session = Depends(get_db)) -> Any:
         session_id=session_id,
         message_id=assistant_msg_id,
         retrieved_items=retrieved_items,
-        analysis_metadata=analysis
+        analysis_metadata=analysis,
+        today_date=req.today_date
     )
+
+    latency_ms = round((time.time() - start_time) * 1000, 2)
+
+    # 5. Format comprehensive debug trace object
+    trace_record = {
+        "timestamp": datetime.datetime.utcnow().isoformat() + "Z",
+        "query": req.question,
+        "retrieved_chunk_ids_with_scores": [
+            {
+                "chunk_id": c.id,
+                "doc_title": d.title,
+                "section": c.section_name,
+                "score": round(score, 3)
+            }
+            for c, d, score in retrieved_items
+        ],
+        "chosen_rule_clause": response.applies_to or "General institutional policy",
+        "final_structured_output": response.model_dump(),
+        "verification_result": {
+            "status": "PASS" if not any("Fact-check" in c for c in response.caveats) else "FLAGGED",
+            "reasons": response.caveats
+        },
+        "retry_count": 0,
+        "latency_ms": latency_ms,
+        "fallback_reason": None if response.sources else "unsupported_query_abstention"
+    }
+
+    # Log to JSON Lines file
+    log_request_trace_jsonl(trace_record)
 
     # Save assistant message with full serialized JSON payload
     asst_msg = ChatMessage(
@@ -73,12 +123,12 @@ def submit_chat_query(req: ChatRequest, db: Session = Depends(get_db)) -> Any:
     )
     db.add(asst_msg)
 
-    # Audit log
+    # Audit log entry with full debug trace JSON payload
     db.add(AuditEvent(
-        action="QUERY",
+        action="QUERY_TRACE",
         target_type="CHAT",
         target_id=session_id,
-        details=f"Query: '{req.question[:100]}', Retrieved: {len(retrieved_items)} chunks, Conflict: {response.conflict.exists}"
+        details=json.dumps(trace_record)
     ))
 
     db.commit()
@@ -98,17 +148,13 @@ def get_session_history(session_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Session not found")
 
     messages = db.query(ChatMessage).filter(ChatMessage.session_id == session_id).order_by(ChatMessage.created_at).all()
-    return {
-        "session_id": session.id,
-        "title": session.title,
-        "messages": [
-            {
-                "id": m.id,
-                "role": m.role,
-                "content": m.content,
-                "structured_data": json.loads(m.structured_data) if m.structured_data else None,
-                "created_at": m.created_at
-            }
-            for m in messages
-        ]
-    }
+    return [
+        {
+            "id": m.id,
+            "role": m.role,
+            "content": m.content,
+            "structured_data": json.loads(m.structured_data) if m.structured_data else None,
+            "created_at": m.created_at
+        }
+        for m in messages
+    ]

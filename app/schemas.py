@@ -61,6 +61,7 @@ class ChatRequest(BaseModel):
     question: str = Field(..., min_length=2, max_length=1000)
     session_id: Optional[str] = None
     include_historical: bool = False
+    today_date: Optional[str] = None
 
 
 class StructuredChatResponse(BaseModel):
@@ -69,6 +70,7 @@ class StructuredChatResponse(BaseModel):
     answer: str
     direct_answer: str = ""
     day_range: str = ""
+    days_covered: str = ""
     applies_to: Optional[str] = None
     effective_date: Optional[str] = None
     caveats: List[str] = []
