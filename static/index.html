@@ -22,7 +22,7 @@
             </div>
             <div>
                 <h1 class="text-lg font-bold tracking-tight">Hostel & Transport Rules Assistant</h1>
-                <p class="text-xs text-indigo-200">Grounded Institutional Policy & Timetable Assistant</p>
+                <p class="text-xs text-indigo-200">Evidence-Grounded RAG & Policy Verification System</p>
             </div>
         </div>
         <div class="flex items-center space-x-2">
@@ -50,11 +50,11 @@
                     <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm max-w-2xl text-slate-800 text-sm">
                         <p class="font-semibold text-slate-900 mb-1 text-base">Hello! How can I help you today?</p>
                         <p class="text-slate-600 leading-relaxed mb-3">
-                            I answer questions about hostel entry/exit timings, night roll calls, outstation leave procedures, bus routes, pickup stops, and transit schedules using approved institutional documents.
+                            Ask me about hostel entry/exit timings, night roll calls, outstation leave procedures, bus routes, pickup points, and transit schedules. Every answer is grounded in official circulars with exact dates and page citations.
                         </p>
                         <div class="text-xs text-slate-500 bg-slate-50 p-2.5 rounded-lg border border-slate-100 flex items-center">
                             <i class="fa-solid fa-shield-halved text-indigo-600 mr-2 text-sm"></i>
-                            Every answer is directly cited with source document titles, publication dates, and freshness notices.
+                            Every time, date, and day range is verified against official institutional rulebooks.
                         </div>
                     </div>
                 </div>
@@ -64,23 +64,35 @@
                     <button onclick="askPrompt('What is the hostel entry gate closing time on weekdays?')" class="text-xs bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium py-1.5 px-3 rounded-full transition shadow-sm">
                         🕒 Weekday Hostel Curfew
                     </button>
-                    <button onclick="askPrompt('Did the weekend hostel curfew change? What is the new Friday/Saturday timing?')" class="text-xs bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium py-1.5 px-3 rounded-full transition shadow-sm">
+                    <button onclick="askPrompt('What is the hostel entry gate closing time on weekends?')" class="text-xs bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium py-1.5 px-3 rounded-full transition shadow-sm">
                         📋 Weekend Curfew Revision
                     </button>
-                    <button onclick="askPrompt('Which bus goes to Lakeview Colony and what are the morning pickup timings for Route 4?')" class="text-xs bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium py-1.5 px-3 rounded-full transition shadow-sm">
+                    <button onclick="askPrompt('What changed recently in the hostel rules?')" class="text-xs bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium py-1.5 px-3 rounded-full transition shadow-sm">
+                        📢 Recent Rule Changes
+                    </button>
+                    <button onclick="askPrompt('Which bus goes to Lakeview Colony and what is the morning time?')" class="text-xs bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium py-1.5 px-3 rounded-full transition shadow-sm">
                         🚌 Route 4 Stops & Timings
                     </button>
                     <button onclick="askPrompt('How do I apply for overnight weekend leave?')" class="text-xs bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium py-1.5 px-3 rounded-full transition shadow-sm">
                         📝 Overnight Leave Procedure
-                    </button>
-                    <button onclick="askPrompt('What are the gymnasium and laundry machine operational hours?')" class="text-xs bg-white hover:bg-indigo-50 border border-slate-200 hover:border-indigo-300 text-slate-700 font-medium py-1.5 px-3 rounded-full transition shadow-sm">
-                        🏋️ Gym & Laundry Hours
                     </button>
                 </div>
             </div>
 
             <!-- Input Bar -->
             <div class="bg-white border-t border-slate-200 p-4">
+                <!-- Prominent Historical Documents Toggle Banner -->
+                <div class="max-w-4xl mx-auto mb-2 flex items-center justify-between px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs">
+                    <span class="text-slate-600 font-medium flex items-center">
+                        <i class="fa-solid fa-clock-rotate-left mr-1.5 text-indigo-600"></i>
+                        Historical Search Mode:
+                    </span>
+                    <label class="flex items-center space-x-2 cursor-pointer">
+                        <input type="checkbox" id="chk-historical" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500">
+                        <span class="text-slate-700 font-semibold">Include superseded historical documents</span>
+                    </label>
+                </div>
+
                 <form id="chat-form" onsubmit="handleSend(event)" class="max-w-4xl mx-auto flex items-center space-x-3">
                     <div class="relative flex-1">
                         <input id="user-input" type="text" placeholder="Ask about hostel rules, timings, or college bus routes..." required class="w-full bg-slate-50 border border-slate-300 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:bg-white text-slate-900 shadow-sm" />
@@ -90,12 +102,8 @@
                         <i class="fa-solid fa-arrow-up text-xs"></i>
                     </button>
                 </form>
-                <div class="max-w-4xl mx-auto mt-2 flex items-center justify-between text-[11px] text-slate-400">
-                    <span>Informational assistant grounded in official notices. Does not grant approvals.</span>
-                    <label class="flex items-center space-x-1.5 cursor-pointer text-slate-500">
-                        <input type="checkbox" id="chk-historical" class="rounded text-indigo-600 focus:ring-0 text-xs">
-                        <span>Include superseded historical documents</span>
-                    </label>
+                <div class="max-w-4xl mx-auto mt-2 text-[11px] text-slate-400 text-center">
+                    Informational assistant grounded in official notices. Does not grant approvals.
                 </div>
             </div>
         </section>
@@ -202,7 +210,7 @@
                 </div>
                 <div>
                     <label class="block text-xs font-semibold text-slate-700 mb-1">Document Content / Text *</label>
-                    <textarea id="m-content" rows="4" required class="w-full border rounded-lg p-2.5 text-xs font-mono focus:ring-1 focus:ring-indigo-500" placeholder="Type or paste the extracted notice text..."></textarea>
+                    <textarea id="m-content" rows="4" required class="w-full border rounded-lg p-2.5 text-xs font-mono focus:ring-1 focus:ring-indigo-500" placeholder="Type or paste the notice text..."></textarea>
                 </div>
                 <div class="pt-2 flex justify-end space-x-2">
                     <button type="button" onclick="closeUploadModal()" class="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-50 text-xs font-medium">Cancel</button>
@@ -248,15 +256,12 @@
             const question = input.value.trim();
             if (!question) return;
 
-            // Hide quick prompts
             const quickPrompts = document.getElementById('quick-prompts');
             if (quickPrompts) quickPrompts.style.display = 'none';
 
-            // Append User Bubble
             appendUserMessage(question);
             input.value = '';
 
-            // Append Typing Indicator
             const typingId = appendTypingIndicator();
 
             try {
@@ -276,7 +281,7 @@
                 currentSessionId = data.session_id;
 
                 removeMessage(typingId);
-                appendAssistantMessage(data);
+                appendStructuredAssistantMessage(data);
             } catch (err) {
                 removeMessage(typingId);
                 appendErrorMessage("Unable to fetch response. Please verify the assistant service is running.");
@@ -299,42 +304,74 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        function appendAssistantMessage(data) {
+        function appendStructuredAssistantMessage(data) {
             const container = document.getElementById('messages-container');
             const div = document.createElement('div');
             div.className = "flex items-start space-x-3";
 
-            // Warning badges
-            let warningsHtml = '';
-            if (data.warnings && data.warnings.length > 0) {
-                warningsHtml = data.warnings.map(w => `
-                    <div class="mb-3 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-start space-x-2">
-                        <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5"></i>
-                        <div><strong class="font-bold">${w.warning_type}:</strong> ${escapeHtml(w.message)}</div>
+            // 1. Merged Policy Update / Conflict Notice
+            let conflictHtml = '';
+            if (data.conflict && data.conflict.exists && data.conflict.notice) {
+                conflictHtml = `
+                    <div class="mb-3 p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs flex items-start space-x-2 shadow-sm">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600 mt-0.5 text-sm"></i>
+                        <div>
+                            <strong class="font-bold text-amber-950">Policy Update:</strong> ${escapeHtml(data.conflict.notice)}
+                        </div>
                     </div>
-                `).join('');
+                `;
             }
 
-            // Citations cards
-            let citationsHtml = '';
-            if (data.citations && data.citations.length > 0) {
-                citationsHtml = `
+            // 2. Caveats Box
+            let caveatsHtml = '';
+            if (data.caveats && data.caveats.length > 0) {
+                caveatsHtml = `
+                    <div class="mt-3 p-2.5 bg-sky-50 rounded-xl border border-sky-200 text-xs text-sky-900">
+                        <div class="font-bold mb-1 flex items-center">
+                            <i class="fa-solid fa-circle-info mr-1.5 text-sky-600"></i> Caveats & Notations:
+                        </div>
+                        <ul class="list-disc pl-4 space-y-1 text-slate-700">
+                            ${data.caveats.map(c => `<li>${escapeHtml(c)}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // 3. Rule Summary Bullets (replaces condition dump)
+            let summaryHtml = '';
+            if (data.rule_summary && data.rule_summary.length > 0) {
+                summaryHtml = `
+                    <div class="mt-3 p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+                        <strong class="font-semibold text-slate-800 block mb-1.5 flex items-center">
+                            <i class="fa-solid fa-list-check mr-1.5 text-indigo-600"></i> Key Rule Summary:
+                        </strong>
+                        <ul class="space-y-1 text-slate-600">
+                            ${data.rule_summary.map(b => `<li class="flex items-start"><span class="text-indigo-500 mr-2">•</span><span>${escapeHtml(b)}</span></li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            // 4. Standardized Sources Citation Cards (Doc Title • Section • Page)
+            let sourcesHtml = '';
+            if (data.sources && data.sources.length > 0) {
+                sourcesHtml = `
                     <div class="mt-4 pt-3 border-t border-slate-100">
                         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">Verified Sources Cited</div>
                         <div class="space-y-2">
-                            ${data.citations.map(c => `
-                                <div class="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs">
+                            ${data.sources.map(s => `
+                                <div class="citation-card bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs">
                                     <div class="flex items-center justify-between mb-1">
-                                        <span class="font-bold text-slate-800">${escapeHtml(c.document_title)}</span>
-                                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${getStatusBadgeClass(c.status)}">${c.status}</span>
+                                        <span class="font-bold text-slate-800">${escapeHtml(s.doc_title)}</span>
+                                        <span class="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full ${getStatusBadgeClass(s.status)}">${s.status.replace('_', ' ')}</span>
                                     </div>
-                                    <div class="text-[11px] text-slate-500 mb-1.5 flex flex-wrap gap-x-3">
-                                        <span><i class="fa-regular fa-calendar mr-1"></i>Pub: ${c.publication_date || 'Undated'}</span>
-                                        ${c.effective_from ? `<span><i class="fa-solid fa-clock-rotate-left mr-1"></i>Eff: ${c.effective_from}</span>` : ''}
-                                        ${c.section_name ? `<span><i class="fa-solid fa-bookmark mr-1"></i>${escapeHtml(c.section_name)} (P.${c.page_number})</span>` : ''}
+                                    <div class="text-[11px] text-slate-500 mb-1.5 flex flex-wrap gap-x-2">
+                                        <span><strong>Section:</strong> ${escapeHtml(s.section || 'General')}</span>
+                                        <span>• <strong>Page:</strong> ${s.page || 1}</span>
+                                        ${s.publication_date ? `<span>• <strong>Notice:</strong> ${s.publication_date}</span>` : ''}
                                     </div>
-                                    <div class="text-slate-600 bg-white p-2 rounded border border-slate-100 text-[11px] italic">
-                                        "${escapeHtml(c.quoted_snippet)}"
+                                    <div class="text-slate-700 bg-white p-2 rounded border border-slate-100 text-[11px] leading-relaxed">
+                                        "${escapeHtml(s.quote)}"
                                     </div>
                                 </div>
                             `).join('')}
@@ -343,40 +380,37 @@
                 `;
             }
 
-            // Conditions block
-            let conditionsHtml = '';
-            if (data.conditions_and_exceptions) {
-                conditionsHtml = `
-                    <div class="mt-3 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100 text-xs text-slate-700">
-                        <strong class="font-semibold text-indigo-950 block mb-1">Specific Conditions & Rules:</strong>
-                        <div class="whitespace-pre-line leading-relaxed text-slate-600">${escapeHtml(data.conditions_and_exceptions)}</div>
+            // 5. Escalation Office
+            let escalationHtml = `
+                <div class="mt-3 text-[11px] text-slate-500 flex items-center justify-between border-t border-slate-100 pt-2">
+                    <span><i class="fa-solid fa-building-columns mr-1 text-slate-400"></i>Official Escalation: <strong class="text-slate-700">${escapeHtml(data.escalation_office)}</strong></span>
+                    <div class="flex items-center space-x-1">
+                        <button onclick="sendFeedback('${data.message_id}', 1)" title="Helpful" class="hover:text-emerald-600 px-1"><i class="fa-regular fa-thumbs-up"></i></button>
+                        <button onclick="sendFeedback('${data.message_id}', -1)" title="Not helpful" class="hover:text-rose-600 px-1"><i class="fa-regular fa-thumbs-down"></i></button>
                     </div>
-                `;
-            }
-
-            // Escalation
-            let escalationHtml = '';
-            if (data.escalation_office) {
-                escalationHtml = `
-                    <div class="mt-3 text-[11px] text-slate-500 flex items-center justify-between">
-                        <span><i class="fa-solid fa-building-columns mr-1 text-slate-400"></i>Official Escalation: <strong class="text-slate-700">${escapeHtml(data.escalation_office)}</strong></span>
-                        <div class="flex items-center space-x-1">
-                            <button onclick="sendFeedback('${data.message_id}', 1)" title="Helpful" class="hover:text-emerald-600 px-1"><i class="fa-regular fa-thumbs-up"></i></button>
-                            <button onclick="sendFeedback('${data.message_id}', -1)" title="Not helpful" class="hover:text-rose-600 px-1"><i class="fa-regular fa-thumbs-down"></i></button>
-                        </div>
-                    </div>
-                `;
-            }
+                </div>
+            `;
 
             div.innerHTML = `
                 <div class="w-9 h-9 rounded-full bg-indigo-600 text-white flex items-center justify-center text-sm shadow">
                     <i class="fa-solid fa-robot"></i>
                 </div>
                 <div class="bg-white border border-slate-200 rounded-2xl rounded-tl-sm p-5 shadow-sm max-w-2xl text-slate-800 text-sm">
-                    ${warningsHtml}
-                    <div class="font-medium text-slate-900 leading-relaxed text-base">${escapeHtml(data.direct_answer)}</div>
-                    ${conditionsHtml}
-                    ${citationsHtml}
+                    ${conflictHtml}
+                    <div class="font-medium text-slate-900 leading-relaxed text-base mb-2">
+                        ${escapeHtml(data.answer)}
+                    </div>
+                    <div class="flex flex-wrap gap-2 text-xs mb-1">
+                        <span class="bg-indigo-50 border border-indigo-200 text-indigo-800 px-2.5 py-0.5 rounded-full font-medium">
+                            <i class="fa-regular fa-calendar-check mr-1"></i>${escapeHtml(data.applies_to || 'General')}
+                        </span>
+                        <span class="bg-emerald-50 border border-emerald-200 text-emerald-800 px-2.5 py-0.5 rounded-full font-medium">
+                            <i class="fa-solid fa-check mr-1"></i>${escapeHtml(data.effective_date || 'In force')}
+                        </span>
+                    </div>
+                    ${summaryHtml}
+                    ${caveatsHtml}
+                    ${sourcesHtml}
                     ${escalationHtml}
                 </div>
             `;
@@ -396,7 +430,7 @@
                 </div>
                 <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm text-slate-400 text-xs flex items-center space-x-2">
                     <i class="fa-solid fa-circle-notch fa-spin text-indigo-600"></i>
-                    <span>Consulting institutional rulebooks & route sheets...</span>
+                    <span>Verifying institutional rules and dates...</span>
                 </div>
             `;
             container.appendChild(div);
@@ -424,7 +458,7 @@
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ message_id: messageId, rating: rating })
                 });
-                alert('Thank you! Your feedback helps ensure institutional policy accuracy.');
+                alert('Feedback submitted. Thank you!');
             } catch (e) {
                 console.error(e);
             }
@@ -447,9 +481,9 @@
                         <td class="px-6 py-4 text-xs font-medium text-slate-700">${d.issuing_department}</td>
                         <td class="px-6 py-4 text-xs text-slate-500">${d.publication_date || '<span class="text-amber-600 font-medium">Undated</span>'}</td>
                         <td class="px-6 py-4 text-xs text-slate-500">${d.effective_from || 'Immediate'} ${d.effective_until ? `to ${d.effective_until}` : ''}</td>
-                        <td class="px-6 py-4"><span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusBadgeClass(d.status)}">${d.status}</span></td>
+                        <td class="px-6 py-4"><span class="px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusBadgeClass(d.status)}">${d.status.replace('_', ' ')}</span></td>
                         <td class="px-6 py-4 text-right">
-                            ${d.status === 'current' ? `
+                            ${d.status !== 'SUPERSEDED' && d.status !== 'INACTIVE' ? `
                                 <button onclick="deactivateDoc('${d.id}')" class="text-rose-600 hover:text-rose-800 text-xs font-semibold px-2 py-1 rounded hover:bg-rose-50">
                                     Deactivate
                                 </button>
@@ -463,7 +497,7 @@
         }
 
         async function deactivateDoc(id) {
-            if (!confirm('Are you sure you want to deactivate this policy document from live search?')) return;
+            if (!confirm('Are you sure you want to deactivate this policy document?')) return;
             await fetch(`/api/documents/${id}/deactivate`, { method: 'POST' });
             loadDocuments();
             loadAuditTrail();
@@ -501,7 +535,7 @@
                 effective_from: document.getElementById('m-eff-from').value || null,
                 effective_until: document.getElementById('m-eff-until').value || null,
                 content: document.getElementById('m-content').value,
-                status: 'current'
+                status: 'CURRENT'
             };
 
             const res = await fetch('/api/documents', {
@@ -521,10 +555,11 @@
 
         function getStatusBadgeClass(status) {
             switch(status) {
-                case 'current': return 'bg-emerald-100 text-emerald-800';
-                case 'superseded': return 'bg-purple-100 text-purple-800';
-                case 'expired': return 'bg-rose-100 text-rose-800';
-                case 'undated': return 'bg-amber-100 text-amber-800';
+                case 'CURRENT': return 'bg-emerald-100 text-emerald-800';
+                case 'PARTIALLY_SUPERSEDED': return 'bg-amber-100 text-amber-800';
+                case 'SUPERSEDED': return 'bg-purple-100 text-purple-800';
+                case 'EXPIRED': return 'bg-rose-100 text-rose-800';
+                case 'UNDATED': return 'bg-slate-100 text-slate-800';
                 default: return 'bg-slate-100 text-slate-700';
             }
         }
@@ -536,4 +571,3 @@
     </script>
 </body>
 </html>
-

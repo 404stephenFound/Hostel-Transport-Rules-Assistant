@@ -3,24 +3,54 @@ from typing import List, Optional
 from pydantic import BaseModel, Field, ConfigDict
 
 
-class Citation(BaseModel):
-    document_id: str
-    document_title: str
-    category: str
-    issuing_department: str
-    publication_date: Optional[str] = None
-    effective_from: Optional[str] = None
-    effective_until: Optional[str] = None
+class SourceItem(BaseModel):
+    doc_id: str
+    doc_title: str
+    section: Optional[str] = "General"
+    page: Optional[int] = 1
+    quote: str
     status: str
-    page_number: Optional[int] = None
-    section_name: Optional[str] = None
-    quoted_snippet: str
+    publication_date: Optional[str] = None
+    effective_date: Optional[str] = None
+
+    @property
+    def document_title(self) -> str:
+        return self.doc_title
+
+    @property
+    def section_name(self) -> Optional[str]:
+        return self.section
+
+    @property
+    def page_number(self) -> Optional[int]:
+        return self.page
+
+    @property
+    def exact_quote(self) -> str:
+        return self.quote
 
 
 class WarningDetail(BaseModel):
-    warning_type: str  # "SUPERSEDED_SOURCE", "OUTDATED_NOTICE", "CONFLICTING_SOURCES", "UNDATED_SOURCE", "EXPIRED_SOURCE"
+    warning_type: str
     message: str
     document_id: Optional[str] = None
+    details: Optional[str] = None
+
+
+class CitationItem(BaseModel):
+    document_id: str
+    document_title: str
+    section_name: Optional[str] = "General"
+    page_number: Optional[int] = 1
+    exact_quote: str
+    status: str
+
+
+class ConflictInfo(BaseModel):
+    exists: bool = False
+    resolved_rule: Optional[str] = None
+    older_rule: Optional[str] = None
+    notice: Optional[str] = None
 
 
 class ChatRequest(BaseModel):
@@ -29,15 +59,30 @@ class ChatRequest(BaseModel):
     include_historical: bool = False
 
 
-class ChatResponse(BaseModel):
+class StructuredChatResponse(BaseModel):
     session_id: str
     message_id: str
-    direct_answer: str
-    conditions_and_exceptions: Optional[str] = None
-    citations: List[Citation] = []
-    warnings: List[WarningDetail] = []
-    escalation_office: Optional[str] = None
-    full_response: str
+    answer: str
+    applies_to: Optional[str] = None
+    effective_date: Optional[str] = None
+    caveats: List[str] = []
+    rule_summary: List[str] = []
+    sources: List[SourceItem] = []
+    conflict: ConflictInfo = ConflictInfo()
+    escalation_office: str = "Hostel Administration Office (Warden Desk / Ext. 102)"
+    full_response: str = ""
+
+    @property
+    def direct_answer(self) -> str:
+        return self.answer
+
+    @property
+    def citations(self) -> List[SourceItem]:
+        return self.sources
+
+
+# Backward compatible alias
+ChatResponse = StructuredChatResponse
 
 
 class DocumentCreate(BaseModel):
@@ -47,7 +92,7 @@ class DocumentCreate(BaseModel):
     publication_date: Optional[str] = None
     effective_from: Optional[str] = None
     effective_until: Optional[str] = None
-    status: str = "current"
+    status: str = "CURRENT"
     supersedes_document_id: Optional[str] = None
     version: str = "1.0"
     content: str
@@ -66,6 +111,7 @@ class DocumentResponse(BaseModel):
     status: str
     supersedes_document_id: Optional[str] = None
     superseded_by_document_id: Optional[str] = None
+    superseded_sections: Optional[str] = None
     version: str
     page_count: int
     created_at: datetime.datetime

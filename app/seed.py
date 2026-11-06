@@ -1,15 +1,21 @@
 import datetime
 import hashlib
+import json
 from sqlalchemy.orm import Session
 
 from app.models import Document, DocumentChunk, AuditEvent
 from app.rag.chunker import chunk_document_text
 
 
-def seed_database(db: Session):
+def seed_database(db: Session, force: bool = False):
     existing_docs = db.query(Document).count()
-    if existing_docs > 0:
+    if existing_docs > 0 and not force:
         return
+
+    if force:
+        db.query(DocumentChunk).delete()
+        db.query(Document).delete()
+        db.commit()
 
     docs_data = [
         {
@@ -19,9 +25,10 @@ def seed_database(db: Session):
             "publication_date": "2025-07-20",
             "effective_from": "2025-08-01",
             "effective_until": None,
-            "status": "current",
+            "status": "PARTIALLY_SUPERSEDED",
+            "superseded_sections": json.dumps(["Section 2: Weekend In-Time"]),
             "version": "1.0",
-            "notes": "Comprehensive rulebook for hostel residents.",
+            "notes": "Comprehensive rulebook. Section 2 weekend curfew superseded by Circular No. 14/2026.",
             "content": """[Page 1]
 Section 1. General Conduct and Hostel Discipline
 All resident students must maintain high standards of discipline, decorum, and cleanliness within hostel premises. Ragging, alcohol consumption, smoking, and possession of unauthorized electrical heating appliances are strictly prohibited. Violations will lead to disciplinary hearing and possible expulsion.
@@ -50,7 +57,8 @@ Food must not be carried outside the dining hall without written authorization f
             "publication_date": "2026-02-15",
             "effective_from": "2026-02-20",
             "effective_until": None,
-            "status": "current",
+            "status": "CURRENT",
+            "superseded_sections": None,
             "version": "1.1",
             "notes": "Supersedes Section 2 weekend curfew timing stated in 2025 Handbook.",
             "content": """[Page 1]
@@ -70,7 +78,8 @@ All students must adhere to the biometric security verification at the main gate
             "publication_date": "2025-08-01",
             "effective_from": "2025-08-05",
             "effective_until": "2026-06-30",
-            "status": "current",
+            "status": "CURRENT",
+            "superseded_sections": None,
             "version": "2.0",
             "notes": "Official bus routes, morning pickup points, and departure schedules.",
             "content": """[Page 1]
@@ -114,7 +123,8 @@ Only Route 1 and Route 2 operate on working Saturdays."""
             "publication_date": "2024-11-10",
             "effective_from": "2024-11-15",
             "effective_until": "2024-12-15",
-            "status": "expired",
+            "status": "EXPIRED",
+            "superseded_sections": None,
             "version": "1.0",
             "notes": "Temporary exam week transport schedule from 2024.",
             "content": """[Page 1]
@@ -130,7 +140,8 @@ This service expires automatically on 15 December 2024."""
             "publication_date": None,
             "effective_from": None,
             "effective_until": None,
-            "status": "undated",
+            "status": "UNDATED",
+            "superseded_sections": None,
             "version": "1.0",
             "notes": "Notice-board memo without official publication date.",
             "content": """[Page 1]
@@ -156,23 +167,31 @@ Automated washing machines in the laundry room are operational from 8:00 AM to 9
         db.flush()
         created_docs.append(doc)
 
-        # Chunk and attach
         chunks = chunk_document_text(content, doc.id)
         for c in chunks:
-            chunk_obj = DocumentChunk(**c)
-            db.add(chunk_obj)
+            # Set clause status
+            clause_st = "CURRENT"
+            if doc.status == "PARTIALLY_SUPERSEDED" and "Section 2" in c.get("section_name", ""):
+                clause_st = "PARTIALLY_SUPERSEDED"
+            elif doc.status == "EXPIRED":
+                clause_st = "EXPIRED"
+            elif doc.status == "UNDATED":
+                clause_st = "UNDATED"
 
-    # Link supersession: Circular 14/2026 supersedes the handbook's weekend rule
+            c["clause_status"] = clause_st
+            db.add(DocumentChunk(**c))
+
+    # Link supersession
     handbook = next(doc for doc in created_docs if "Handbook" in doc.title)
     circular = next(doc for doc in created_docs if "Circular No. 14" in doc.title)
     circular.supersedes_document_id = handbook.id
+    handbook.superseded_by_document_id = circular.id
 
     db.add(AuditEvent(
         action="SEED",
         target_type="KNOWLEDGE_BASE",
-        target_id="INITIAL_SEED",
-        details="Seeded baseline hostel and transport rulebooks, superseding circular, and route schedules."
+        target_id="SEED_V2",
+        details="Seeded baseline corpus with clause-level supersession and day-range metadata."
     ))
 
     db.commit()
-

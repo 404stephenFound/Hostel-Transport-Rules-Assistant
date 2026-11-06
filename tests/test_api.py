@@ -41,25 +41,31 @@ def test_student_chat_query_endpoint(test_db):
     res = submit_chat_query(req, db=test_db)
     
     assert res.session_id is not None
-    assert "8:30 PM" in res.direct_answer or "8:30 PM" in res.full_response
-    assert len(res.citations) >= 1
-    assert res.citations[0].document_title is not None
+    assert "8:30 PM" in res.answer
+    assert res.applies_to is not None
+    assert "Weekdays" in res.applies_to
+    assert len(res.sources) >= 1
+    assert res.sources[0].doc_title is not None
     assert "Hostel" in res.escalation_office
+    # Ensure day range caveat is attached
+    assert any("discrepancy" in c.lower() or "sunday" in c.lower() for c in res.caveats)
 
 
 def test_student_chat_unsupported_abstains_endpoint(test_db):
     req = ChatRequest(question="What is the secret password for the underground nuclear shelter?")
     res = submit_chat_query(req, db=test_db)
     
-    assert "I could not find this rule" in res.direct_answer
-    assert len(res.citations) == 0
+    assert "I could not find this rule" in res.answer
+    assert len(res.sources) == 0
 
 
 def test_document_listing_and_creation_endpoints(test_db):
     # Test listing seeded documents
     docs = list_documents(db=test_db)
     assert len(docs) >= 4
-    assert any("Handbook" in d.title for d in docs)
+    handbook = next(d for d in docs if "Handbook" in d.title)
+    assert handbook.status == "PARTIALLY_SUPERSEDED"
+    assert handbook.superseded_sections is not None
 
     # Test creating a new document
     new_doc_data = DocumentCreate(

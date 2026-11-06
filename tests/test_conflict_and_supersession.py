@@ -32,12 +32,25 @@ def test_superseded_and_conflict_detection(test_db):
     results = retriever.search("What is the hostel gate closing time on weekends?", top_k=4, include_historical=True)
     chunks_with_docs = [(c, d) for c, d, _ in results]
 
-    analysis = analyze_retrieved_evidence(chunks_with_docs)
-    warnings = analysis["warnings"]
-    warning_types = [w.warning_type for w in warnings]
+    analysis = analyze_retrieved_evidence(chunks_with_docs, query="What is the hostel gate closing time on weekends?")
+    conflict = analysis["conflict"]
+    
+    # Unified conflict notice check
+    assert conflict.exists is True
+    assert "Updated by Hostel Circular No. 14/2026" in conflict.notice
+    assert "Older rule: 8:30 PM on weekends" in conflict.notice
+    assert "Current rule: 9:30 PM on Friday and Saturday" in conflict.notice
+    assert "already in force since" in conflict.notice
 
-    # Should detect conflict between circular and handbook
-    assert "CONFLICTING_SOURCES" in warning_types or "SUPERSEDED_SOURCE" in warning_types
+
+def test_no_warning_on_unaffected_clause(test_db):
+    retriever = HybridRetriever(test_db)
+    results = retriever.search("What is the hostel mess fee and dining timings?", top_k=2)
+    chunks_with_docs = [(c, d) for c, d, _ in results]
+
+    analysis = analyze_retrieved_evidence(chunks_with_docs, query="What is the hostel mess fee and dining timings?")
+    assert analysis["conflict"].exists is False
+    assert len(analysis["warnings"]) == 0
 
 
 def test_expired_notice_detection(test_db):

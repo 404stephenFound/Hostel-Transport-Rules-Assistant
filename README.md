@@ -2,7 +2,7 @@
 
 > **Evidence-Grounded RAG & Policy Verification System for College Hostel Operations and Campus Transport.**
 
-[![Tests](https://img.shields.io/badge/pytest-12%20passed-emerald)](./tests)
+[![Tests](https://img.shields.io/badge/pytest-13%20passed-emerald)](./tests)
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-teal.svg)](https://fastapi.tiangolo.com/)
 [![License](https://img.shields.io/badge/license-MIT-slate.svg)](LICENSE)

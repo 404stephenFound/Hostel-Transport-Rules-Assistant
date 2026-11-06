@@ -94,7 +94,7 @@ def run_dom_tests():
         assert "8:30 PM" in direct_answer_text or "9:30 PM" in direct_answer_text
 
         # Inspect Citation Card
-        citation_card = page.locator("#messages-container .bg-slate-50.border.border-slate-200.rounded-xl").first
+        citation_card = page.locator("#messages-container .citation-card").first
         citation_title = citation_card.locator("span.font-bold.text-slate-800").text_content()
         print(f"   [DOM VERIFIED] Cited Document: '{citation_title}'")
         assert "Hostel" in citation_title
@@ -126,6 +126,8 @@ def run_dom_tests():
         print("6. Switching to 'Policy Admin Hub' tab...")
         page.locator("#tab-admin-btn").click()
         page.wait_for_selector("#admin-view:not(.hidden)", timeout=4000)
+        # Wait for async documents load to populate table rows
+        page.wait_for_selector("#docs-table-body tr td.font-semibold", timeout=6000)
 
         # Verify documents table rows
         rows = page.locator("#docs-table-body tr")
@@ -134,11 +136,12 @@ def run_dom_tests():
         assert row_count >= 5
 
         # Check badges in table
-        table_html = page.locator("#docs-table-body").inner_html()
-        assert "Hostel Student Handbook 2025-2026" in table_html
-        assert "Circular No. 14/2026" in table_html
-        assert "Route Schedule" in table_html
+        table_html = page.locator("#docs-table-body").inner_html().lower()
+        assert "hostel student handbook 2025-2026" in table_html
+        assert "circular no. 14/2026" in table_html
+        assert "route schedule" in table_html
         assert "current" in table_html
+        assert "partially_superseded" in table_html or "superseded" in table_html
         assert "expired" in table_html
         assert "undated" in table_html
 

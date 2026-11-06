@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import ChatSession, ChatMessage, AuditEvent
-from app.schemas import ChatRequest, ChatResponse
+from app.schemas import ChatRequest, StructuredChatResponse
 from app.rag.retriever import HybridRetriever
 from app.rag.conflict_detector import analyze_retrieved_evidence
 from app.llm.generator import RAGAnswerGenerator
@@ -15,7 +15,7 @@ router = APIRouter()
 generator = RAGAnswerGenerator()
 
 
-@router.post("", response_model=ChatResponse)
+@router.post("", response_model=StructuredChatResponse)
 def submit_chat_query(req: ChatRequest, db: Session = Depends(get_db)) -> Any:
     # 1. Manage session
     session_id = req.session_id
@@ -41,7 +41,7 @@ def submit_chat_query(req: ChatRequest, db: Session = Depends(get_db)) -> Any:
     )
     db.add(user_msg)
 
-    # 2. Hybrid Retrieval
+    # 2. Hybrid Retrieval with Intent-Aware Clause Ranking
     retriever = HybridRetriever(db)
     retrieved_items = retriever.search(
         query=req.question,
@@ -49,11 +49,11 @@ def submit_chat_query(req: ChatRequest, db: Session = Depends(get_db)) -> Any:
         include_historical=req.include_historical
     )
 
-    # 3. Analyze retrieved evidence for conflicts, supersession, expired status
+    # 3. Analyze retrieved evidence for clause supersessions and conflicts
     chunks_with_docs = [(chunk, doc) for chunk, doc, _ in retrieved_items]
-    analysis = analyze_retrieved_evidence(chunks_with_docs)
+    analysis = analyze_retrieved_evidence(chunks_with_docs, query=req.question)
 
-    # 4. Generate grounded response
+    # 4. Generate grounded structured response
     assistant_msg_id = str(uuid.uuid4())
     response = generator.generate_response(
         query=req.question,
@@ -63,14 +63,13 @@ def submit_chat_query(req: ChatRequest, db: Session = Depends(get_db)) -> Any:
         analysis_metadata=analysis
     )
 
-    # Save assistant message with serialized citations and warnings
+    # Save assistant message with full serialized JSON payload
     asst_msg = ChatMessage(
         id=assistant_msg_id,
         session_id=session_id,
         role="assistant",
-        content=response.full_response,
-        citations=json.dumps([c.model_dump() for c in response.citations]),
-        warnings=json.dumps([w.model_dump() for w in response.warnings])
+        content=response.answer,
+        structured_data=json.dumps(response.model_dump())
     )
     db.add(asst_msg)
 
@@ -79,7 +78,7 @@ def submit_chat_query(req: ChatRequest, db: Session = Depends(get_db)) -> Any:
         action="QUERY",
         target_type="CHAT",
         target_id=session_id,
-        details=f"Query: '{req.question[:100]}', Retrieved: {len(retrieved_items)} chunks, Warnings: {len(response.warnings)}"
+        details=f"Query: '{req.question[:100]}', Retrieved: {len(retrieved_items)} chunks, Conflict: {response.conflict.exists}"
     ))
 
     db.commit()
@@ -107,11 +106,9 @@ def get_session_history(session_id: str, db: Session = Depends(get_db)):
                 "id": m.id,
                 "role": m.role,
                 "content": m.content,
-                "citations": json.loads(m.citations) if m.citations else [],
-                "warnings": json.loads(m.warnings) if m.warnings else [],
+                "structured_data": json.loads(m.structured_data) if m.structured_data else None,
                 "created_at": m.created_at
             }
             for m in messages
         ]
     }
-
